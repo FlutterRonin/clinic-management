@@ -67,8 +67,10 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    tenants: Tenant;
     users: User;
-    media: Media;
+    patients: Patient;
+    appointments: Appointment;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,8 +78,10 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    patients: PatientsSelect<false> | PatientsSelect<true>;
+    appointments: AppointmentsSelect<false> | AppointmentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -119,10 +123,62 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: string;
+  name: string;
+  /**
+   * Auto-generated from the name; used for public URLs later.
+   */
+  slug?: string | null;
+  phone: string;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  status: 'active' | 'suspended';
+  settings: {
+    appointmentDurationMins: number;
+    openTime: string;
+    closeTime: string;
+    /**
+     * Market-agnostic core — all amounts are formatted from this.
+     */
+    currency: 'PKR' | 'USD' | 'GBP' | 'AED' | 'SAR' | 'INR';
+    /**
+     * All times are displayed in this timezone.
+     */
+    timezone: 'Asia/Karachi' | 'Asia/Dubai' | 'Asia/Riyadh' | 'Asia/Kolkata' | 'Europe/London' | 'America/New_York';
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: string;
+  name: string;
+  role: 'superAdmin' | 'owner' | 'doctor' | 'receptionist';
+  /**
+   * Required for all roles except super admin.
+   */
+  tenant?: (string | null) | Tenant;
+  phone?: string | null;
+  active?: boolean | null;
+  specialty?: string | null;
+  /**
+   * In the clinic currency. Used by billing (v2).
+   */
+  consultationFee?: number | null;
+  availabilityType?: ('regular' | 'onCall' | 'byAppointment') | null;
+  /**
+   * Days this doctor sees patients (daily = all; alternate = e.g. Mon/Wed/Fri; weekly = one).
+   */
+  availableDays?: ('sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat')[] | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -144,22 +200,52 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
+ * via the `definition` "patients".
  */
-export interface Media {
+export interface Patient {
   id: string;
-  alt: string;
+  tenant: string | Tenant;
+  /**
+   * Auto-assigned per clinic.
+   */
+  mrn?: string | null;
+  name: string;
+  phone: string;
+  gender: 'male' | 'female' | 'other';
+  dateOfBirth?: string | null;
+  ageYears?: number | null;
+  bloodGroup?: ('A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-') | null;
+  /**
+   * Shown prominently on the patient profile (safety).
+   */
+  allergies?: string | null;
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "appointments".
+ */
+export interface Appointment {
+  id: string;
+  tenant: string | Tenant;
+  patient: string | Patient;
+  doctor: string | User;
+  start: string;
+  durationMins: number;
+  end?: string | null;
+  reason?: string | null;
+  status: 'scheduled' | 'checked-in' | 'completed' | 'cancelled' | 'no-show';
+  isWalkIn?: boolean | null;
+  /**
+   * Auto-assigned per clinic per day for walk-ins.
+   */
+  tokenNumber?: string | null;
+  cancellationReason?: string | null;
+  createdBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -186,12 +272,20 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
+        relationTo: 'tenants';
+        value: string | Tenant;
+      } | null)
+    | ({
         relationTo: 'users';
         value: string | User;
       } | null)
     | ({
-        relationTo: 'media';
-        value: string | Media;
+        relationTo: 'patients';
+        value: string | Patient;
+      } | null)
+    | ({
+        relationTo: 'appointments';
+        value: string | Appointment;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -237,9 +331,44 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  phone?: T;
+  address?: T;
+  city?: T;
+  country?: T;
+  status?: T;
+  settings?:
+    | T
+    | {
+        appointmentDurationMins?: T;
+        openTime?: T;
+        closeTime?: T;
+        currency?: T;
+        timezone?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  tenant?: T;
+  phone?: T;
+  active?: T;
+  specialty?: T;
+  consultationFee?: T;
+  availabilityType?: T;
+  availableDays?: T;
+  availableFrom?: T;
+  availableTo?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -259,21 +388,41 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
+ * via the `definition` "patients_select".
  */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
+export interface PatientsSelect<T extends boolean = true> {
+  tenant?: T;
+  mrn?: T;
+  name?: T;
+  phone?: T;
+  gender?: T;
+  dateOfBirth?: T;
+  ageYears?: T;
+  bloodGroup?: T;
+  allergies?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "appointments_select".
+ */
+export interface AppointmentsSelect<T extends boolean = true> {
+  tenant?: T;
+  patient?: T;
+  doctor?: T;
+  start?: T;
+  durationMins?: T;
+  end?: T;
+  reason?: T;
+  status?: T;
+  isWalkIn?: T;
+  tokenNumber?: T;
+  cancellationReason?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
