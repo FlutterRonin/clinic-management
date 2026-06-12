@@ -48,3 +48,9 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.last-run.json
+/.playwright/
+
+# Claude Code (includes .claude/skills/playwright-skill and its node_modules)
+.claude/
+CLAUDE.md

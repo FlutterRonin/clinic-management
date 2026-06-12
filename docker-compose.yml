@@ -1,43 +1,38 @@
-version: '3'
+# Local MongoDB as a SINGLE-NODE REPLICA SET.
+#
+# This is required, not optional: Payload runs the double-booking guard inside a
+# MongoDB transaction, and transactions only work on a replica set. A standalone
+# mongo silently makes transactions a no-op (spec §8.3) — so we always run rs0.
+#
+#   docker compose up -d
+#   # connect with: mongodb://127.0.0.1:27017/clinic-management?replicaSet=rs0
 
 services:
-  payload:
-    image: node:20-alpine
-    ports:
-      - '3000:3000'
-    volumes:
-      - .:/home/node/app
-      - node_modules:/home/node/app/node_modules
-    working_dir: /home/node/app/
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"
-    depends_on:
-      - mongo
-      # - postgres
-    env_file:
-      - .env
-
-  # Ensure your DATABASE_URL uses 'mongo' as the hostname ie. mongodb://mongo/my-db-name
   mongo:
-    image: mongo:latest
+    image: mongo:7
+    container_name: clinic-mongo
     ports:
       - '27017:27017'
+    # Raise the transaction lock-acquisition timeout (default 5ms) so the booking
+    # guard's transactional reads don't spuriously fail under concurrency on a
+    # single node.
     command:
-      - --storageEngine=wiredTiger
+      - '--replSet'
+      - 'rs0'
+      - '--bind_ip_all'
+      - '--setParameter'
+      - 'maxTransactionLockRequestTimeoutMillis=5000'
     volumes:
       - data:/data/db
-    logging:
-      driver: none
-
-  # Uncomment the following to use postgres
-  # postgres:
-  #   restart: always
-  #   image: postgres:latest
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+    healthcheck:
+      # Initialize the replica set once, then report healthy.
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}).ok }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 5s
 
 volumes:
   data:
-  # pgdata:
-  node_modules:
