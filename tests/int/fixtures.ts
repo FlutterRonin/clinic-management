@@ -11,7 +11,8 @@ export async function getTestPayload(): Promise<Payload> {
   return _payload
 }
 
-const COLLECTIONS = ['appointments', 'patients', 'users', 'tenants'] as const
+// Delete children before parents so nothing dangles mid-wipe.
+const COLLECTIONS = ['invoices', 'visits', 'appointments', 'patients', 'users', 'tenants'] as const
 
 /** Wipe all data so each suite starts clean. */
 export async function wipe(payload: Payload): Promise<void> {

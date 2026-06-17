@@ -71,6 +71,8 @@ export interface Config {
     users: User;
     patients: Patient;
     appointments: Appointment;
+    visits: Visit;
+    invoices: Invoice;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +84,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     patients: PatientsSelect<false> | PatientsSelect<true>;
     appointments: AppointmentsSelect<false> | AppointmentsSelect<true>;
+    visits: VisitsSelect<false> | VisitsSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -249,6 +253,92 @@ export interface Appointment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visits".
+ */
+export interface Visit {
+  id: string;
+  tenant: string | Tenant;
+  appointment: string | Appointment;
+  patient: string | Patient;
+  doctor: string | User;
+  visitDate: string;
+  symptoms?: string | null;
+  diagnosis?: string | null;
+  /**
+   * Visible to all clinic staff.
+   */
+  notes?: string | null;
+  vitals?: {
+    bpSystolic?: number | null;
+    bpDiastolic?: number | null;
+    temperatureC?: number | null;
+    weightKg?: number | null;
+    pulse?: number | null;
+  };
+  prescription?:
+    | {
+        medicine: string;
+        dosage?: string | null;
+        frequency?: ('od' | 'bd' | 'tds' | 'qid' | 'sos' | 'other') | null;
+        frequencyNote?: string | null;
+        durationDays?: number | null;
+        instructions?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  followUpDate?: string | null;
+  createdBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: string;
+  tenant: string | Tenant;
+  /**
+   * Auto-assigned per clinic (INV-0001).
+   */
+  invoiceNumber?: string | null;
+  visit?: (string | null) | Visit;
+  patient: string | Patient;
+  /**
+   * Snapshotted from the clinic at create time.
+   */
+  currency?: string | null;
+  lineItems: {
+    description: string;
+    quantity: number;
+    unitAmount: number;
+    /**
+     * quantity × unit amount.
+     */
+    amount?: number | null;
+    id?: string | null;
+  }[];
+  totalAmount?: number | null;
+  payments?:
+    | {
+        amount: number;
+        method: 'cash' | 'card' | 'bank-transfer' | 'other';
+        receivedAt?: string | null;
+        receivedBy?: (string | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  amountPaid?: number | null;
+  balanceDue?: number | null;
+  paymentStatus?: ('unpaid' | 'partial' | 'paid') | null;
+  voided?: boolean | null;
+  voidReason?: string | null;
+  createdBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -286,6 +376,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'appointments';
         value: string | Appointment;
+      } | null)
+    | ({
+        relationTo: 'visits';
+        value: string | Visit;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: string | Invoice;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -420,6 +518,82 @@ export interface AppointmentsSelect<T extends boolean = true> {
   isWalkIn?: T;
   tokenNumber?: T;
   cancellationReason?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visits_select".
+ */
+export interface VisitsSelect<T extends boolean = true> {
+  tenant?: T;
+  appointment?: T;
+  patient?: T;
+  doctor?: T;
+  visitDate?: T;
+  symptoms?: T;
+  diagnosis?: T;
+  notes?: T;
+  vitals?:
+    | T
+    | {
+        bpSystolic?: T;
+        bpDiastolic?: T;
+        temperatureC?: T;
+        weightKg?: T;
+        pulse?: T;
+      };
+  prescription?:
+    | T
+    | {
+        medicine?: T;
+        dosage?: T;
+        frequency?: T;
+        frequencyNote?: T;
+        durationDays?: T;
+        instructions?: T;
+        id?: T;
+      };
+  followUpDate?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  tenant?: T;
+  invoiceNumber?: T;
+  visit?: T;
+  patient?: T;
+  currency?: T;
+  lineItems?:
+    | T
+    | {
+        description?: T;
+        quantity?: T;
+        unitAmount?: T;
+        amount?: T;
+        id?: T;
+      };
+  totalAmount?: T;
+  payments?:
+    | T
+    | {
+        amount?: T;
+        method?: T;
+        receivedAt?: T;
+        receivedBy?: T;
+        id?: T;
+      };
+  amountPaid?: T;
+  balanceDue?: T;
+  paymentStatus?: T;
+  voided?: T;
+  voidReason?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;

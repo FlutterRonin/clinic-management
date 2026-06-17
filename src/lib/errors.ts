@@ -10,6 +10,13 @@ const MESSAGES: Record<string, string> = {
   [ERROR_CODES.USER_INACTIVE]: 'Your account has been deactivated. Contact your clinic owner.',
   [ERROR_CODES.FORBIDDEN]: "You don't have permission to do that.",
   [ERROR_CODES.VALIDATION]: 'Please check the form and try again.',
+  // v2 — clinical loop
+  [ERROR_CODES.VISIT_EXISTS]: 'A visit has already been recorded for this appointment.',
+  [ERROR_CODES.INVALID_APPOINTMENT_STATE]: 'Check the patient in before recording a visit.',
+  [ERROR_CODES.PAYMENT_EXCEEDS_BALANCE]: 'Payment exceeds the remaining balance.',
+  [ERROR_CODES.INVOICE_VOIDED]: "This invoice has been voided and can't be changed.",
+  [ERROR_CODES.INVOICE_LOCKED]:
+    "Line items can't be changed after a payment. Void the invoice and create a new one.",
 }
 
 export type ActionResult<T = unknown> =

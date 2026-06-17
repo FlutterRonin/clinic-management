@@ -50,6 +50,34 @@ export const ALL_DAYS = WEEKDAYS.map((d) => d.value)
 
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
 
+// --- v2: clinical loop ---
+
+// Appointment statuses on which a Visit (consultation) may be recorded.
+export const VISIT_ALLOWED_APPOINTMENT_STATUSES: AppointmentStatus[] = ['checked-in', 'completed']
+
+// Prescription dosing frequencies (standard medical shorthand). `other` reveals a note.
+export const PRESCRIPTION_FREQUENCIES = [
+  { label: 'OD — once a day', value: 'od' },
+  { label: 'BD — twice a day', value: 'bd' },
+  { label: 'TDS — thrice a day', value: 'tds' },
+  { label: 'QID — four times a day', value: 'qid' },
+  { label: 'SOS — as needed', value: 'sos' },
+  { label: 'Other', value: 'other' },
+] as const
+export type PrescriptionFrequency = (typeof PRESCRIPTION_FREQUENCIES)[number]['value']
+
+export const PAYMENT_METHODS = [
+  { label: 'Cash', value: 'cash' },
+  { label: 'Card', value: 'card' },
+  { label: 'Bank transfer', value: 'bank-transfer' },
+  { label: 'Other', value: 'other' },
+] as const
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]['value']
+
+// Derived — never set by a client. unpaid (paid=0) / partial / paid (balance=0).
+export const INVOICE_STATUSES = ['unpaid', 'partial', 'paid'] as const
+export type InvoiceStatus = (typeof INVOICE_STATUSES)[number]
+
 // Curated currency list (a full ISO list is overkill). `code` feeds Intl.NumberFormat.
 export const CURRENCIES = [
   { label: 'PKR — Pakistani Rupee', value: 'PKR' },
@@ -85,4 +113,10 @@ export const ERROR_CODES = {
   PLAN_LIMIT: 'PLAN_LIMIT',
   FORBIDDEN: 'FORBIDDEN',
   VALIDATION: 'VALIDATION',
+  // v2 — clinical loop
+  VISIT_EXISTS: 'VISIT_EXISTS',
+  INVALID_APPOINTMENT_STATE: 'INVALID_APPOINTMENT_STATE',
+  PAYMENT_EXCEEDS_BALANCE: 'PAYMENT_EXCEEDS_BALANCE',
+  INVOICE_VOIDED: 'INVOICE_VOIDED',
+  INVOICE_LOCKED: 'INVOICE_LOCKED',
 } as const
