@@ -35,6 +35,20 @@ export const tenantScoped: Access = ({ req: { user } }) => {
 export const superAdminOnly: Access = ({ req: { user } }) => isSuperAdmin(user)
 
 /**
+ * Visits write (create/update): tenant-scoped, but only clinical roles — a
+ * receptionist never authors a clinical record (v2 spec §2.1). Read stays
+ * tenant-wide (`tenantScoped`) so reception can print.
+ */
+export const visitsWriteAccess: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (isSuperAdmin(user)) return true
+  const tenantID = getTenantID(user)
+  if (!tenantID) return false
+  if (user.role === 'doctor' || user.role === 'owner') return { tenant: { equals: tenantID } }
+  return false
+}
+
+/**
  * Tenants collection read: superAdmin sees all; a tenant user may read only their
  * own tenant doc (for clinic name / settings in the UI).
  */
