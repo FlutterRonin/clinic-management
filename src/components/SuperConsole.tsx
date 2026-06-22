@@ -21,6 +21,7 @@ export type TenantRow = {
   patients: number
   appointments: number
   createdAt: string
+  onboardingSource?: string | null
 }
 
 const CURRENCIES = ['PKR', 'USD', 'GBP', 'AED', 'SAR', 'INR']
@@ -34,6 +35,9 @@ export function SuperConsole({ tenants }: { tenants: TenantRow[] }) {
   const [page, setPage] = useState(1)
   const totalPages = Math.max(1, Math.ceil(tenants.length / TENANTS_PAGE_SIZE))
   const pageRows = tenants.slice((page - 1) * TENANTS_PAGE_SIZE, page * TENANTS_PAGE_SIZE)
+  // Self-serve signups land as `pending` and queue here for approval (spec §3.2).
+  // Most recent first; createdAt already sorts that way upstream.
+  const pendingSignups = tenants.filter((t) => t.status === 'pending')
   const [form, setForm] = useState({
     name: '', phone: '', city: '', currency: 'PKR', timezone: 'Asia/Karachi',
     ownerName: '', ownerEmail: '', ownerPassword: '',
@@ -55,6 +59,16 @@ export function SuperConsole({ tenants }: { tenants: TenantRow[] }) {
   const toggle = (id: string, status: string) => {
     start(async () => {
       const res = await setClinicStatus(id, status === 'active' ? 'suspended' : 'active')
+      if (res.ok) router.refresh()
+      else setError(res.message)
+    })
+  }
+
+  // Approve (pending -> active) / reject (pending -> suspended) a self-serve signup.
+  const setStatus = (id: string, status: 'active' | 'suspended') => {
+    setError(null)
+    start(async () => {
+      const res = await setClinicStatus(id, status)
       if (res.ok) router.refresh()
       else setError(res.message)
     })
@@ -123,6 +137,46 @@ export function SuperConsole({ tenants }: { tenants: TenantRow[] }) {
         </Card>
       )}
 
+      {pendingSignups.length > 0 && (
+        <Card className="mb-5 overflow-hidden border-amber/30 bg-amber-soft/40">
+          <div className="flex items-center justify-between border-b border-amber/20 px-6 py-4">
+            <h2 className="text-sm font-semibold text-amber">Pending approval</h2>
+            <span className="text-xs text-muted-foreground">Self-serve · {pendingSignups.length} awaiting review</span>
+          </div>
+          <ul className="divide-y divide-amber/15">
+            {pendingSignups.map((t) => (
+              <li key={t.id} className="flex items-center gap-3 px-6 py-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                  <IconBuilding size={15} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-medium">{t.name}</div>
+                  <div className="truncate text-xs text-faint">
+                    {t.city || '—'} · {new Date(t.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    className="text-xs font-medium text-faint transition-colors hover:text-red disabled:opacity-50"
+                    disabled={pending}
+                    onClick={() => setStatus(t.id, 'suspended')}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    className={`${btnPrimary} h-8 px-3 text-xs`}
+                    disabled={pending}
+                    onClick={() => setStatus(t.id, 'active')}
+                  >
+                    Approve
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <Card className="overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -168,9 +222,9 @@ export function SuperConsole({ tenants }: { tenants: TenantRow[] }) {
                       t.status === 'active' ? 'text-faint hover:text-red' : 'text-primary hover:underline'
                     }`}
                     disabled={pending}
-                    onClick={() => toggle(t.id, t.status)}
+                    onClick={() => (t.status === 'pending' ? setStatus(t.id, 'active') : toggle(t.id, t.status))}
                   >
-                    {t.status === 'active' ? 'Suspend' : 'Reactivate'}
+                    {t.status === 'active' ? 'Suspend' : t.status === 'pending' ? 'Approve' : 'Reactivate'}
                   </button>
                 </Td>
               </tr>

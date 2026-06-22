@@ -31,6 +31,7 @@ export default async function SuperPage() {
         patients: patients.totalDocs,
         appointments: appointments.totalDocs,
         createdAt: t.createdAt,
+        onboardingSource: t.onboardingSource,
       }
     }),
   )
