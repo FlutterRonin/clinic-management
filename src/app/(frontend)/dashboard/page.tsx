@@ -16,6 +16,7 @@ import {
   IconStaff,
   IconWallet,
   IconReceipt,
+  IconCheck,
 } from '@/components/icons'
 import { BarChart } from '@/components/BarChart'
 import { RevenueChart } from '@/components/RevenueChart'
@@ -33,15 +34,20 @@ function greetingFor(tz: string): string {
   return 'Good evening'
 }
 
-export default async function DashboardHome() {
+export default async function DashboardHome({
+  searchParams,
+}: {
+  searchParams?: Promise<{ welcome?: string }>
+}) {
   const { user, tenant } = await requireDashboardSession()
   const payload = await getPayloadClient()
   const tenantID = getTenantID(user)!
   const tz = tenant?.settings?.timezone || DEFAULT_TIMEZONE
+  const params = (await searchParams) ?? {}
 
   const todayStart = startOfDayInTz(tz, 0)
   const tomorrowStart = startOfDayInTz(tz, 1)
-  const [data, doctorsRes, todayApptsRes, recentPatientsRes] = await Promise.all([
+  const [data, doctorsRes, todayApptsRes, recentPatientsRes, patientsCount, apptsCount] = await Promise.all([
     getDashboardData(payload, tenantID, tenant),
     payload.find({
       collection: 'users',
@@ -67,8 +73,24 @@ export default async function DashboardHome() {
       sort: '-createdAt',
       overrideAccess: true,
     }),
+    payload.count({ collection: 'patients', where: { tenant: { equals: tenantID } }, overrideAccess: true }),
+    payload.count({ collection: 'appointments', where: { tenant: { equals: tenantID } }, overrideAccess: true }),
   ])
   const recentPatients = recentPatientsRes.docs as Patient[]
+
+  // Welcome state for fresh self-serve clinics (spec §9): a 3-step checklist that
+  // derives entirely from counts — no extra state is stored. It fades out on its
+  // own once the clinic has more than its seeded sample patients.
+  const activeDoctors = doctorsRes.totalDocs
+  const showWelcome =
+    params.welcome === '1' ||
+    (tenant?.onboardingSource === 'self-serve' && patientsCount.totalDocs <= 3)
+  const checklist = [
+    { done: activeDoctors > 0, title: 'Add your doctors', desc: 'Set their specialties and timings', href: '/dashboard/staff', ownerOnly: true },
+    { done: patientsCount.totalDocs > 0, title: 'Register a patient', desc: 'Name and phone is enough', href: '/dashboard/patients/new', ownerOnly: false },
+    { done: apptsCount.totalDocs > 0, title: 'Book an appointment', desc: 'Or take a walk-in', href: '/dashboard/appointments/new', ownerOnly: false },
+  ].filter((s) => !s.ownerOnly || user.role === 'owner')
+  const doneCount = checklist.filter((s) => s.done).length
 
   // Revenue & outstanding are owner-only (sensitive money figures).
   const isOwner = user.role === 'owner'
@@ -112,6 +134,55 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-5">
+      {showWelcome && (
+        <section className="card-flat overflow-hidden border-primary/20 bg-secondary/30">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/15 px-5 py-4">
+            <div>
+              <h2 className="font-display text-lg font-semibold text-primary">
+                Welcome to matab, {firstName} 👋
+              </h2>
+              <p className="mt-0.5 text-[13px] text-muted-foreground">
+                Your clinic is ready — we&rsquo;ve added a little sample data to explore. Make it
+                yours in three steps.
+              </p>
+            </div>
+            <span className="tabular shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {doneCount}/{checklist.length} done
+            </span>
+          </div>
+          <ol className="divide-y divide-primary/10">
+            {checklist.map((step, i) => (
+              <li key={step.href}>
+                <Link
+                  href={step.href}
+                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-card/60"
+                >
+                  <span
+                    className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      step.done
+                        ? 'bg-primary text-white'
+                        : 'border border-primary/30 bg-card text-primary'
+                    }`}
+                  >
+                    {step.done ? <IconCheck size={14} strokeWidth={3} /> : i + 1}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-[13px] font-semibold ${step.done ? 'text-muted-foreground line-through' : 'group-hover:text-primary'}`}>
+                      {step.title}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">{step.desc}</span>
+                  </span>
+                  <IconArrowUpRight
+                    size={14}
+                    className="shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[13px] font-medium text-muted-foreground">{today}</p>
