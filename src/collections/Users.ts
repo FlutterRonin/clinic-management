@@ -53,6 +53,13 @@ export const Users: CollectionConfig = {
               { code: ERROR_CODES.TENANT_SUSPENDED },
             )
           }
+          if (tenant?.status === 'pending') {
+            throw new APIError(
+              "Your clinic is awaiting admin approval. You'll be able to sign in once it's approved.",
+              403,
+              { code: ERROR_CODES.TENANT_PENDING },
+            )
+          }
         }
       },
     ],

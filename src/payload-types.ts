@@ -140,7 +140,7 @@ export interface Tenant {
   address?: string | null;
   city?: string | null;
   country?: string | null;
-  status: 'active' | 'suspended';
+  status: 'pending' | 'active' | 'suspended';
   /**
    * Subscription tier; limits enforced in code (src/lib/plans.ts).
    */

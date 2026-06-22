@@ -7,6 +7,8 @@ const MESSAGES: Record<string, string> = {
   [ERROR_CODES.SLOT_TAKEN]: 'That slot was just taken. Pick another time.',
   [ERROR_CODES.INVALID_TRANSITION]: "That status change isn't allowed.",
   [ERROR_CODES.TENANT_SUSPENDED]: "This clinic's account is suspended. Contact support.",
+  [ERROR_CODES.TENANT_PENDING]:
+    "Your clinic is awaiting admin approval. You'll be able to sign in once it's approved.",
   [ERROR_CODES.PLAN_LIMIT]: 'Your plan limit has been reached. Request an upgrade to add more.',
   [ERROR_CODES.USER_INACTIVE]: 'Your account has been deactivated. Contact your clinic owner.',
   [ERROR_CODES.FORBIDDEN]: "You don't have permission to do that.",
@@ -18,6 +20,10 @@ const MESSAGES: Record<string, string> = {
   [ERROR_CODES.INVOICE_VOIDED]: "This invoice has been voided and can't be changed.",
   [ERROR_CODES.INVOICE_LOCKED]:
     "Line items can't be changed after a payment. Void the invoice and create a new one.",
+  // v3 — self-serve onboarding
+  [ERROR_CODES.SIGNUP_EMAIL_TAKEN]: 'An account with this email already exists.',
+  [ERROR_CODES.SIGNUP_RATE_LIMITED]: 'Too many signups from this network. Try again later.',
+  [ERROR_CODES.SIGNUP_FAILED]: "We couldn't create your clinic. Please try again.",
 }
 
 export type ActionResult<T = unknown> =
