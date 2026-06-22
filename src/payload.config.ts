@@ -11,6 +11,7 @@ import { Patients } from './collections/Patients'
 import { Appointments } from './collections/Appointments'
 import { Visits } from './collections/Visits'
 import { Invoices } from './collections/Invoices'
+import { AuditLogs } from './collections/AuditLogs'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +26,7 @@ export default buildConfig({
       titleSuffix: '— Clinic Management',
     },
   },
-  collections: [Tenants, Users, Patients, Appointments, Visits, Invoices],
+  collections: [Tenants, Users, Patients, Appointments, Visits, Invoices, AuditLogs],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

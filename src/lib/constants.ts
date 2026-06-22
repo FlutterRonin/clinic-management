@@ -117,6 +117,22 @@ export const COUNTRY_DEFAULTS = [
 ] as const
 export const DEFAULT_COUNTRY = 'Pakistan'
 
+// v3 — audit log actions (spec §2.2). Append-only record of sensitive actions.
+export const AUDIT_ACTIONS = [
+  { value: 'appointment.created', label: 'Appointment booked' },
+  { value: 'appointment.cancelled', label: 'Appointment cancelled' },
+  { value: 'appointment.status-changed', label: 'Appointment status changed' },
+  { value: 'invoice.voided', label: 'Invoice voided' },
+  { value: 'payment.recorded', label: 'Payment recorded' },
+  { value: 'user.created', label: 'Staff added' },
+  { value: 'user.deactivated', label: 'Staff deactivated' },
+  { value: 'user.role-changed', label: 'Role changed' },
+  { value: 'settings.updated', label: 'Settings updated' },
+  { value: 'tenant.suspended', label: 'Clinic suspended' },
+  { value: 'tenant.reactivated', label: 'Clinic reactivated' },
+] as const
+export type AuditAction = (typeof AUDIT_ACTIONS)[number]['value']
+
 // Stable error codes — UI maps these to friendly messages (spec §9.1).
 export const ERROR_CODES = {
   SLOT_TAKEN: 'SLOT_TAKEN',
