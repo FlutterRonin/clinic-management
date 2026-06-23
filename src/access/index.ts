@@ -93,6 +93,19 @@ export const usersUpdateAccess: Access = ({ req: { user } }) => {
   return { id: { equals: user.id } } as Where // self only
 }
 
+/**
+ * Audit logs read: superAdmin sees all; owner sees only their own clinic's log.
+ * Doctors and receptionists never see the audit trail (spec §2.2).
+ */
+export const auditReadAccess: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (isSuperAdmin(user)) return true
+  if (user.role !== 'owner') return false
+  const tenantID = getTenantID(user)
+  if (!tenantID) return false
+  return { tenant: { equals: tenantID } }
+}
+
 /** Field-level: only superAdmin or owner may write this field (e.g. role, active). */
 export const superAdminOrOwnerField: FieldAccess = ({ req: { user } }) =>
   isSuperAdmin(user) || user?.role === 'owner'

@@ -102,7 +102,11 @@ function LoginForm() {
 
           <h1 className="font-display text-2xl font-semibold tracking-tight">Welcome back</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Sign in to your clinic to start the day.
+            Sign in to your clinic to start the day. New here?{' '}
+            <Link href="/signup" className="font-medium text-primary hover:underline">
+              Start free
+            </Link>
+            .
           </p>
 
           <form action={formAction} className="mt-8 flex flex-col gap-4">

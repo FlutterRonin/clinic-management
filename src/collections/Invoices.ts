@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 import { tenantScoped, denyAll, getTenantID, isSuperAdmin, superAdminOrOwnerField } from '@/access'
 import { forceTenant } from '@/hooks/tenant'
+import { auditInvoices } from '@/hooks/audit'
 import {
   ERROR_CODES,
   PAYMENT_METHODS,
@@ -150,6 +151,7 @@ export const Invoices: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [auditInvoices],
   },
   fields: [
     {

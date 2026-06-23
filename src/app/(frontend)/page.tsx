@@ -119,6 +119,9 @@ export default function HomePage() {
             <Link href="/login" className={btnGhost}>
               Sign in
             </Link>
+            <Link href="/signup" className={btnPrimary}>
+              Start free
+            </Link>
           </nav>
         </div>
       </header>
@@ -164,13 +167,13 @@ export default function HomePage() {
             </p>
             <p className="mt-2 text-sm italic text-faint">Aapka clinic, organized.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="#demo" className={btnPrimary}>
-                Try the live demo
+              <Link href="/signup" className={btnPrimary}>
+                Start free
                 <IconArrowRight size={15} />
-              </a>
-              <Link href="/login" className={btnGhost}>
-                Sign in
               </Link>
+              <a href="#demo" className={btnGhost}>
+                Try the live demo
+              </a>
             </div>
             <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
               {['No double-bookings', 'Walk-in queue tokens', 'Multi-clinic & multi-currency'].map((t) => (

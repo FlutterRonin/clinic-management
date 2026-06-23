@@ -10,6 +10,7 @@ import {
   DEFAULT_CLOSE_TIME,
 } from '@/lib/constants'
 import { PLANS, planLabel } from '@/lib/plans'
+import { auditTenants } from '@/hooks/audit'
 
 const slugify = (value: string): string =>
   value
@@ -38,6 +39,9 @@ export const Tenants: CollectionConfig = {
     delete: superAdminOnly,
   },
   timestamps: true,
+  hooks: {
+    afterChange: [auditTenants],
+  },
   fields: [
     {
       name: 'name',
@@ -80,6 +84,9 @@ export const Tenants: CollectionConfig = {
       defaultValue: 'active',
       access: { update: superAdminField }, // owners can never suspend/unsuspend themselves
       options: [
+        // `pending` = a self-serve signup awaiting super-admin approval (v3 §3.2).
+        // Manually-created clinics start `active`; self-serve start `pending`.
+        { label: 'Pending approval', value: 'pending' },
         { label: 'Active', value: 'active' },
         { label: 'Suspended', value: 'suspended' },
       ],

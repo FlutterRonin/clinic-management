@@ -104,15 +104,49 @@ export const DEFAULT_APPOINTMENT_DURATION = 15
 export const DEFAULT_OPEN_TIME = '09:00'
 export const DEFAULT_CLOSE_TIME = '21:00'
 
+// Self-serve signup (v3 spec §3.2): the country select suggests sensible
+// currency/timezone defaults (still editable). Keys are the labels shown in the
+// form; values seed the new tenant's settings.
+export const COUNTRY_DEFAULTS = [
+  { label: 'Pakistan', currency: 'PKR', timezone: 'Asia/Karachi' },
+  { label: 'United Arab Emirates', currency: 'AED', timezone: 'Asia/Dubai' },
+  { label: 'Saudi Arabia', currency: 'SAR', timezone: 'Asia/Riyadh' },
+  { label: 'India', currency: 'INR', timezone: 'Asia/Kolkata' },
+  { label: 'United Kingdom', currency: 'GBP', timezone: 'Europe/London' },
+  { label: 'United States', currency: 'USD', timezone: 'America/New_York' },
+] as const
+export const DEFAULT_COUNTRY = 'Pakistan'
+
+// v3 — audit log actions (spec §2.2). Append-only record of sensitive actions.
+export const AUDIT_ACTIONS = [
+  { value: 'appointment.created', label: 'Appointment booked' },
+  { value: 'appointment.cancelled', label: 'Appointment cancelled' },
+  { value: 'appointment.status-changed', label: 'Appointment status changed' },
+  { value: 'invoice.voided', label: 'Invoice voided' },
+  { value: 'payment.recorded', label: 'Payment recorded' },
+  { value: 'user.created', label: 'Staff added' },
+  { value: 'user.deactivated', label: 'Staff deactivated' },
+  { value: 'user.role-changed', label: 'Role changed' },
+  { value: 'settings.updated', label: 'Settings updated' },
+  { value: 'tenant.suspended', label: 'Clinic suspended' },
+  { value: 'tenant.reactivated', label: 'Clinic reactivated' },
+] as const
+export type AuditAction = (typeof AUDIT_ACTIONS)[number]['value']
+
 // Stable error codes — UI maps these to friendly messages (spec §9.1).
 export const ERROR_CODES = {
   SLOT_TAKEN: 'SLOT_TAKEN',
   INVALID_TRANSITION: 'INVALID_TRANSITION',
   TENANT_SUSPENDED: 'TENANT_SUSPENDED',
+  TENANT_PENDING: 'TENANT_PENDING',
   USER_INACTIVE: 'USER_INACTIVE',
   PLAN_LIMIT: 'PLAN_LIMIT',
   FORBIDDEN: 'FORBIDDEN',
   VALIDATION: 'VALIDATION',
+  // v3 — self-serve onboarding
+  SIGNUP_EMAIL_TAKEN: 'SIGNUP_EMAIL_TAKEN',
+  SIGNUP_RATE_LIMITED: 'SIGNUP_RATE_LIMITED',
+  SIGNUP_FAILED: 'SIGNUP_FAILED',
   // v2 — clinical loop
   VISIT_EXISTS: 'VISIT_EXISTS',
   INVALID_APPOINTMENT_STATE: 'INVALID_APPOINTMENT_STATE',

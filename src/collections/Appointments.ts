@@ -3,6 +3,7 @@ import { APIError } from 'payload'
 import { tenantScoped, denyAll, getTenantID } from '@/access'
 import { forceTenant } from '@/hooks/tenant'
 import { findConflict, computeEnd } from '@/lib/booking'
+import { auditAppointments } from '@/hooks/audit'
 import { startOfDayInTz } from '@/lib/reports'
 import { DEFAULT_TIMEZONE } from '@/lib/constants'
 import {
@@ -132,6 +133,7 @@ export const Appointments: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [auditAppointments],
   },
   fields: [
     {
