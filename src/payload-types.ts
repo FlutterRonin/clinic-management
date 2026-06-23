@@ -73,6 +73,7 @@ export interface Config {
     appointments: Appointment;
     visits: Visit;
     invoices: Invoice;
+    auditLogs: AuditLog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +87,7 @@ export interface Config {
     appointments: AppointmentsSelect<false> | AppointmentsSelect<true>;
     visits: VisitsSelect<false> | VisitsSelect<true>;
     invoices: InvoicesSelect<false> | InvoicesSelect<true>;
+    auditLogs: AuditLogsSelect<false> | AuditLogsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -352,6 +354,47 @@ export interface Invoice {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auditLogs".
+ */
+export interface AuditLog {
+  id: string;
+  tenant: string | Tenant;
+  user: string | User;
+  action:
+    | 'appointment.created'
+    | 'appointment.cancelled'
+    | 'appointment.status-changed'
+    | 'invoice.voided'
+    | 'payment.recorded'
+    | 'user.created'
+    | 'user.deactivated'
+    | 'user.role-changed'
+    | 'settings.updated'
+    | 'tenant.suspended'
+    | 'tenant.reactivated';
+  targetCollection: string;
+  targetId: string;
+  /**
+   * Human-readable, e.g. "Cancelled Bilal Ahmed's 5:30 pm appointment".
+   */
+  summary: string;
+  /**
+   * Small structured context (old/new role, amount…). Never a full doc snapshot.
+   */
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -397,6 +440,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'invoices';
         value: string | Invoice;
+      } | null)
+    | ({
+        relationTo: 'auditLogs';
+        value: string | AuditLog;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -617,6 +664,21 @@ export interface InvoicesSelect<T extends boolean = true> {
   voided?: T;
   voidReason?: T;
   createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auditLogs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  tenant?: T;
+  user?: T;
+  action?: T;
+  targetCollection?: T;
+  targetId?: T;
+  summary?: T;
+  meta?: T;
   updatedAt?: T;
   createdAt?: T;
 }

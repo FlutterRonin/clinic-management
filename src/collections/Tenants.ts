@@ -10,6 +10,7 @@ import {
   DEFAULT_CLOSE_TIME,
 } from '@/lib/constants'
 import { PLANS, planLabel } from '@/lib/plans'
+import { auditTenants } from '@/hooks/audit'
 
 const slugify = (value: string): string =>
   value
@@ -38,6 +39,9 @@ export const Tenants: CollectionConfig = {
     delete: superAdminOnly,
   },
   timestamps: true,
+  hooks: {
+    afterChange: [auditTenants],
+  },
   fields: [
     {
       name: 'name',
