@@ -136,6 +136,11 @@ function LoginForm() {
                 className={inputClass}
               />
             </Field>
+            <div className="-mt-2 text-right">
+              <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
 
             {state && !state.ok && (
               <p className="rounded-lg border border-red/25 bg-red-soft px-3 py-2 text-sm text-red" role="alert">

@@ -24,6 +24,13 @@ const MESSAGES: Record<string, string> = {
   [ERROR_CODES.SIGNUP_EMAIL_TAKEN]: 'An account with this email already exists.',
   [ERROR_CODES.SIGNUP_RATE_LIMITED]: 'Too many signups from this network. Try again later.',
   [ERROR_CODES.SIGNUP_FAILED]: "We couldn't create your clinic. Please try again.",
+  // backlog — email hardening
+  [ERROR_CODES.RESET_TOKEN_INVALID]:
+    'This reset link is invalid or has expired. Request a new one.',
+  [ERROR_CODES.EMAIL_NOT_VERIFIED]:
+    'Verify your email first — check your inbox for the confirmation link.',
+  [ERROR_CODES.VERIFY_TOKEN_INVALID]:
+    'This verification link is invalid or has expired. Request a new one below.',
 }
 
 export type ActionResult<T = unknown> =
