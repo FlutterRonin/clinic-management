@@ -152,6 +152,8 @@ export const ERROR_CODES = {
   SIGNUP_FAILED: 'SIGNUP_FAILED',
   // v3 — reminders (internal; never surfaced in the UI)
   CRON_UNAUTHORIZED: 'CRON_UNAUTHORIZED',
+  // backlog — email hardening
+  RESET_TOKEN_INVALID: 'RESET_TOKEN_INVALID',
   // v2 — clinical loop
   VISIT_EXISTS: 'VISIT_EXISTS',
   INVALID_APPOINTMENT_STATE: 'INVALID_APPOINTMENT_STATE',
